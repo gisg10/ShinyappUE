@@ -45,18 +45,16 @@ server<-function(input,output){
             claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665)]
             claiminfo4 <- subset(claiminfo3,claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2])
             claiminfo4}
-        else
-        { if(length(words2)==1)
+        else if (length(words2)==1)
         { claiminfo2$xxtotal <- rowsum(claiminfo2[, c(words2)],claiminfo2$Category)
         claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,length(claiminfo2))]
-        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2])}
-            
-            else
+        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2])
+        claiminfo4}
+        else
             {claiminfo2$xxtotal <-rowSums(claiminfo2[,c(words2)])
             claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,length(claiminfo2))]
-            claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2])}
-            claiminfo4
-        }
+            claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2])
+            claiminfo4}
     })
     
     
@@ -82,4 +80,3 @@ server<-function(input,output){
     )    
 }
 shinyApp(ui = ui, server = server)
-
