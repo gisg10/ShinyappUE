@@ -11,7 +11,7 @@ ui<-fluidPage(
     
     sidebarLayout(
         sidebarPanel(
-            dateRangeInput("dates", label = h3("Date range"), start = Sys.Date()-1825, end = Sys.Date(), format = "mm/dd/yy"),
+            dateRangeInput("dates", label = h3("Date range"), start = "01-01-2010", end = "12-31-2014", format = "mm/dd/yy"),
             
             hr(),
             
