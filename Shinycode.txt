@@ -28,8 +28,7 @@ ui<-fluidPage(
     )
 )
 server<-function(input,output){
-    output$table <- renderDataTable({
-        
+    datasetInput <- reactive({
         words2 <- unlist(str_split(input$words1,","))
         if(input$words1 == "")
         for (i in 1:length(words2)) {
@@ -51,14 +50,15 @@ server<-function(input,output){
         claiminfo3 <- claiminfo2[,c(1,652,654,656,659,length(claiminfo2))]
         claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2])}
         claiminfo4
-    }})
+    }
+  })
+
+
+    output$table <- renderDataTable({
+            datasetInput()
+        })
     output$plot <- renderPlot({
-        if(length(strsplit(input$words1,",")[[1]])==1)
-        {claiminfo2$xxtotal <- rowsum(claiminfo2[, strsplit(input$words1, ",")[[1]]],claiminfo2$Category)}
-        else
-        {claiminfo2$xxtotal <-rowSums(claiminfo2[,strsplit(input$words1,",")[[1]]])}
-        claiminfo3 <- claiminfo2[,c(1,652,654,656,659,length(claiminfo2))]
-        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2])
+        claiminfo4 <- datasetInput()
         counts <- table(as.numeric(format(claiminfo4[,"LOSSDATE"], "%Y")))
         barplot(counts, main="Claims by Year", 
                 xlab="Loss Year")
