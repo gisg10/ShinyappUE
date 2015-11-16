@@ -21,7 +21,7 @@ ui<-fluidPage(
             hr(),
             
             checkboxGroupInput("checkbox", label = "Line of Business", 
-                               c("ELL" = "ELL","CGL"="CGL","CGX"="CGX","BLX"="BLX","GLU"="GLU","GLX"="GLX"),inline = TRUE),
+                               c("ELL" = "ELL","CGL"="CGL","CGX"="CGX","BLX"="BLX","GLU"="GLU","GLX"="GLX"),selected = c("ELL","CGL","CGX","BLX","GLU","GLX"),inline = TRUE),
             downloadButton('downloadData', 'Download')
         ),
         mainPanel(
@@ -35,6 +35,7 @@ ui<-fluidPage(
 server<-function(input,output){
     datasetInput <- reactive({
         words2 <- unlist(str_split(input$words1,","))
+        lob <- unlist(str_split(input$checkbox,","))
         
         for (i in 1:length(words2)) {
             trimwords <- str_trim(words2[i])
@@ -43,18 +44,19 @@ server<-function(input,output){
         if(length(words2) == 0)
         {claiminfo2
             claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665)]
-            claiminfo4 <- subset(claiminfo3,claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2])
+            claiminfo4 <- subset(claiminfo3,claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2]& claiminfo3[,"LINEOFBUSINESS"] %in% c(input$checkbox))
             claiminfo4}
         else if (length(words2)==1)
         { claiminfo2$xxtotal <- rowsum(claiminfo2[, c(words2)],claiminfo2$Category)
         claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,length(claiminfo2))]
-        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2])
+        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LINEOFBUSINESS"] %in% c(input$checkbox))
+        
         claiminfo4}
         else
-            {claiminfo2$xxtotal <-rowSums(claiminfo2[,c(words2)])
-            claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,length(claiminfo2))]
-            claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2])
-            claiminfo4}
+        {claiminfo2$xxtotal <-rowSums(claiminfo2[,c(words2)])
+        claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,length(claiminfo2))]
+        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LINEOFBUSINESS"] %in% c(input$checkbox))
+        claiminfo4}
     })
     
     
