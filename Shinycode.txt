@@ -16,7 +16,7 @@ ui<-fluidPage(
             hr(),
             
             checkboxGroupInput("checkbox", label = "Line of Business", 
-                               c("ELL","CGL","CGX","BLX","GLU","GLX"),inline = TRUE),
+                               c("ELL" = "ELL","CGL"="CGL","CGX"="CGX","BLX"="BLX","GLU"="GLU","GLX"="GLX"),inline = TRUE),
             downloadButton('downloadData', 'Download')
         ),
         mainPanel(
