@@ -43,11 +43,8 @@ ui<-fluidPage(
         mainPanel(
             tabsetPanel(type = "tabs", 
                         tabPanel("List of Claims", dataTableOutput(outputId = "table")), 
-<<<<<<< HEAD
-                        tabPanel("Summary",textOutput(outputId = "total1"),textOutput(outputId = "total2"),dataTableOutput(outputId = "table1")),
-=======
+                        tabPanel("Summary",textOutput(outputId = "total1"),textOutput(outputId = "total2"),dataTableOutput                            (outputId = "table1")),
                         tabPanel("Summary",textOutput(outputId = "total1"),textOutput(outputId = "total2"),tableOutput(outputId = "table1")),
->>>>>>> origin/master
                         tabPanel("Plot", plotOutput("plot1"),plotOutput("plot2"))
             )
         )
