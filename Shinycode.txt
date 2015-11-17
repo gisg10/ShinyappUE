@@ -18,9 +18,7 @@ ui<-fluidPage(
                    label = "Enter search terms, separated by commas",choices = colnames(claiminfo2[,2:length(claiminfo2)]), 
                    multiple = TRUE
     ),
-     radioButtons("logic", label = h3("Word Logic"),
-    choices = list("Or" = 1, "And" = 2), 
-    selected = 1),
+    
     sidebarLayout(
         sidebarPanel(
             dateRangeInput("dates", label = h3("Date range"), start = "01-01-2010", end = "12-31-2014", format = "mm/dd/yy"),
@@ -72,19 +70,12 @@ server<-function(input,output){
         	claiminfo4
 	}
 
-        else if(input$logic==1)
-            {claiminfo2$xxtotal <-rowSums(claiminfo2[,c(words2)])
-            claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,length(claiminfo2))]
-            claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[                 ,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LINEOFBUSINESS"] %in% c(input$checkbox))
-            claiminfo4}
-        else
-            {claiminfo3 <- claiminfo2[,c("Category","ISN","LINEOFBUSINESS","LOSSDATE","TOTALINCURRED","LIMIT","RETENTION"                    ,"INSTCODE","INCIDENTORCLAIM")]
-            claiminfo6 <- claiminfo2[,c(words2)]
-            claiminfo6[(claiminfo6>1)] <-1
-            claiminfo5<-cbind(claiminfo3,claiminfo6)
-            claiminfo5$xxtotal <-rowSums(claiminfo5[,c(words2)])
-            claiminfo4 <-subset(claiminfo5,claiminfo5[,"xxtotal"] == length(words2) & claiminfo5[,"LOSSDATE"]>=input$dates[1]             & claiminfo5[,"LOSSDATE"]<=input$dates[2] & claiminfo5[,"LINEOFBUSINESS"] %in% c(input$checkbox))
-            claiminfo4}
+        else {
+        	claiminfo2$xxtotal <-rowSums(claiminfo2[,c(words2)])
+        	claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,667,length(claiminfo2))]
+        	claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(lob)& claiminfo3[,"INSTCODENEW"] %in% c(inst_code)& claiminfo3[,"INCIDENTORCLAIM"] %in% c(inc_claim))
+        	claiminfo4
+	}
     })
     
     output$table <- renderDataTable({
@@ -119,4 +110,3 @@ server<-function(input,output){
 }
 
 shinyApp(ui = ui, server = server)
-
