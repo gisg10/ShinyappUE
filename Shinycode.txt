@@ -1,121 +1,113 @@
 library(stringr)
 library(shiny)
 
-claiminfo2 <-read.csv("X:/Claims_Project/Claims_DTM_PDOX.csv")
+claiminfo2 <-read.csv("X:/Actuarial/Claims_Project/Claims_DTM_PDOX.csv")
 claiminfo2$LOSSDATE<-as.Date(claiminfo2[,"LOSSDATE"],"%m/%d/%y")
 claiminfo2$LIMIT<-paste("$",format(claiminfo2$LIMIT, big.mark=","),sep="")
 claiminfo2$RETENTION<-paste("$",format(claiminfo2$RETENTION, big.mark=","),sep="")
 claiminfo2$LOBNEW <- claiminfo2[,"LINEOFBUSINESS"]
-claiminfo2$LOBNEW <- ifelse(claiminfo2$LINEOFBUSINESS %in% c("DAL","DBC","DGL","SAF","SAL","SBC","SBO","SCF","SGF","SGL","SOF"),
-                            "Public Schools",ifelse(claiminfo2$LINEOFBUSINESS %in% c("CGX","GLF","GLU","GLX"),"GLX/U",paste(claiminfo2$LINEOFBUSINESS)))
+claiminfo2$LOBNEW <- ifelse(claiminfo2$LINEOFBUSINESS %in% c("DAL","DBC","DGL","SAF","SAL","SBC","SBO","SCF","SGF","SGL","SOF"),"Public Schools",ifelse(claiminfo2$LINEOFBUSINESS %in% c("CGX","GLF","GLU","GLX"),"GLX/U",paste(claiminfo2$LINEOFBUSINESS)))
 claiminfo2$INSTCODENEW <- claiminfo2[,"INSTCODE"]
 claiminfo2$INSTCODENEW <- ifelse(claiminfo2$INSTCODE %in% c("PS","SD"),"PS/SD",ifelse(claiminfo2$INSTCODE %in% c("U4","R4"),"U4/R4",ifelse(claiminfo2$INSTCODE %in% c("U2","R2"),"U2/R2",paste(claiminfo2$INSTCODE))))
 
 
 ui<-fluidPage(
-    
-    selectizeInput(inputId = "words1",
-                   label = "Enter search terms, separated by commas",choices = colnames(claiminfo2[,2:length(claiminfo2)]), 
-                   multiple = TRUE
-    ),
-     radioButtons("logic", label = h3("Word Logic"),
-    choices = list("Or" = 1, "And" = 2), 
-    selected = 1),
-    sidebarLayout(
-        sidebarPanel(
-            dateRangeInput("dates", label = h3("Date range"), start = "01-01-2010", end = "12-31-2014", format = "mm/dd/yy"),
-            
-            hr(),
-            
-            checkboxGroupInput("checkboxLOB", label = "Line of Business", 
-                               c("ELL"="ELL","CGL" = "CGL","GLX/U"="GLX/U","BLX"="BLX","EBL"="EBL","LPL"="LPL","Public Schools"="Public Schools"),selected = c.Date("ELL","CGL","GLX/U","BLX","EBL","LPL","Public Schools"),inline = TRUE),
-            checkboxGroupInput("checkboxICode", label = "Institution Code", 
-                               c("IN"="IN","O" = "O","PS/SD"="PS/SD","U4/R4"="U4/R4","U2/R2"="U2/R2"),selected = c("IN","O","PS/SD","U4/R4","U2/R2"),inline = TRUE),
-            checkboxGroupInput("checkboxInc_Claim", label = "Claim/Incident", 
+	selectizeInput(inputId = "words1",
+        	label = "Enter search terms, separated by commas",choices = colnames(claiminfo2[,2:length(claiminfo2)]), 
+        	multiple = TRUE
+    	),
+    	radioButtons("logic", label = h3("Word Logic"),
+    		choices = list("Or" = 1, "And" = 2), selected = 1),
+    	sidebarLayout(
+        	sidebarPanel(
+            		dateRangeInput("dates", label = h3("Date range"), start = "01-01-2010", end = "12-31-2014", format = 				"mm/dd/yy"),
+            		hr(),
+			checkboxGroupInput("checkboxLOB", label = "Line of Business", 
+                               c("ELL"="ELL","CGL" = "CGL","GLX/U"="GLX/U","BLX"="BLX","EBL"="EBL","LPL"="LPL","Public 						Schools"="Public Schools"),selected = c.Date("ELL","CGL","GLX/U","BLX","EBL","LPL","Public 				Schools"),inline = TRUE),
+            		checkboxGroupInput("checkboxICode", label = "Institution Code", 
+                               c("IN"="IN","O" = "O","PS/SD"="PS/SD","U4/R4"="U4/R4","U2/R2"="U2/R2"),selected = c("IN","O"					,"PS/SD","U4/R4","U2/R2"),inline = TRUE),
+            		checkboxGroupInput("checkboxInc_Claim", label = "Claim/Incident", 
                                c("Claim" = "C","Incident"="I"),selected = c("C","I"),inline = TRUE),
-            downloadButton('downloadData', 'Download')
-        ),
-        mainPanel(
-            tabsetPanel(type = "tabs", 
-                        tabPanel("List of Claims", dataTableOutput(outputId = "table")), 
-                        tabPanel("Plot", plotOutput("plot1"),plotOutput("plot2"))
-            )
+            		downloadButton('downloadData', 'Download')
+        	),
+        	mainPanel(
+        		tabsetPanel(type = "tabs", 
+                        	tabPanel("List of Claims", dataTableOutput(outputId = "table")), 
+                        	tabPanel("Plot", plotOutput("plot1"),plotOutput("plot2"))
+        		)
+        	)
         )
-    )
 )
 
 server<-function(input,output){
-    datasetInput <- reactive({
-        words2 <- unlist(str_split(input$words1,","))
-        lob <- unlist(str_split(input$checkboxLOB,","))
-        inst_code <- unlist(str_split(input$checkboxICode,","))
-        inc_claim <- unlist(str_split(input$checkboxInc_Claim,","))
-        
-        for (i in 1:length(words2)) {
-            trimwords <- str_trim(words2[i])
-            words2[i] <- trimwords
-        }
+	datasetInput <- reactive({
+        	words2 <- unlist(str_split(input$words1,","))
+        	lob <- unlist(str_split(input$checkboxLOB,","))
+        	inst_code <- unlist(str_split(input$checkboxICode,","))
+        	inc_claim <- unlist(str_split(input$checkboxInc_Claim,","))
+        	for (i in 1:length(words2)) {
+            		trimwords <- str_trim(words2[i])
+            		words2[i] <- trimwords
+        	}
 
-        if(length(words2) == 0){
-
-            claiminfo2
-            claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,667)]
-            claiminfo4 <- subset(claiminfo3,claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2]& claiminfo3[,"LOBNEW"] %in% c(lob)& claiminfo3[,"INSTCODENEW"] %in% c(inst_code)& claiminfo3[,"INCIDENTORCLAIM"] %in% c(inc_claim))
-            claiminfo4
-	}
-
-        else if (length(words2)==1){
-        	
-		claiminfo2$xxtotal <- rowsum(claiminfo2[, c(words2)],claiminfo2$Category)
-        	claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,667,length(claiminfo2))]
-        	claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(lob)& claiminfo3[,"INSTCODENEW"] %in% c(inst_code)& claiminfo3[,"INCIDENTORCLAIM"] %in% c(inc_claim))
-        	claiminfo4
-	}
-
-        else if(input$logic==1)
-            {claiminfo2$xxtotal <-rowSums(claiminfo2[,c(words2)])
-            claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,length(claiminfo2))]
-            claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[                 ,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LINEOFBUSINESS"] %in% c(input$checkbox))
-            claiminfo4}
-        else
-            {claiminfo3 <- claiminfo2[,c("Category","ISN","LINEOFBUSINESS","LOSSDATE","TOTALINCURRED","LIMIT","RETENTION"                    ,"INSTCODE","INCIDENTORCLAIM")]
-            claiminfo6 <- claiminfo2[,c(words2)]
-            claiminfo6[(claiminfo6>1)] <-1
-            claiminfo5<-cbind(claiminfo3,claiminfo6)
-            claiminfo5$xxtotal <-rowSums(claiminfo5[,c(words2)])
-            claiminfo4 <-subset(claiminfo5,claiminfo5[,"xxtotal"] == length(words2) & claiminfo5[,"LOSSDATE"]>=input$dates[1]             & claiminfo5[,"LOSSDATE"]<=input$dates[2] & claiminfo5[,"LINEOFBUSINESS"] %in% c(input$checkbox))
-            claiminfo4}
-    })
-    
-    output$table <- renderDataTable({
-        claiminfo<-datasetInput()
-        claiminfo$TOTALINCURRED<-paste("$",format(claiminfo$TOTALINCURRED, big.mark=","),sep="")
-        names(claiminfo)[c(1,3,4,5,6:9)] <- c("Claim Number","Line of Business","Loss Date","Total Incurred", "Limit", "Retention", "Institution Code", "Incident or Claim")
-        claiminfo
-    })
+        	if(length(words2) == 0){
+        		claiminfo2
+            		claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,667)]
+            		claiminfo4 <- subset(claiminfo3,claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]				<=input$dates[2]& claiminfo3[,"LOBNEW"] %in% c(lob)& claiminfo3[,"INSTCODENEW"] %in% c(inst_code)& 			claiminfo3[,"INCIDENTORCLAIM"] %in% c(inc_claim))
+            		claiminfo4
+		}
+		else if (length(words2)==1){
+			claiminfo2$xxtotal <- rowsum(claiminfo2[, c(words2)],claiminfo2$Category)
+        		claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,667,length(claiminfo2))]
+        		claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & 			claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(lob)& claiminfo3[,"INSTCODENEW"] 				%in% c(inst_code)& claiminfo3[,"INCIDENTORCLAIM"] %in% c(inc_claim))
+        		claiminfo4
+		}
+        	else if(input$logic==1){
+        		claiminfo2$xxtotal <-rowSums(claiminfo2[,c(words2)])
+            		claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,length(claiminfo2))]
+            		claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & 			claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LINEOFBUSINESS"] %in% c(input$checkbox))
+            		claiminfo4
+            	}
+        	else{
+        		claiminfo3 <- claiminfo2[,c("Category","ISN","LINEOFBUSINESS","LOSSDATE","TOTALINCURRED","LIMIT"				,"RETENTION","INSTCODE","INCIDENTORCLAIM")]
+            		claiminfo6 <- claiminfo2[,c(words2)]
+            		claiminfo6[(claiminfo6>1)] <-1
+            		claiminfo5<-cbind(claiminfo3,claiminfo6)
+            		claiminfo5$xxtotal <-rowSums(claiminfo5[,c(words2)])
+            		claiminfo4 <-subset(claiminfo5,claiminfo5[,"xxtotal"] == length(words2) & claiminfo5[,"LOSSDATE"]				>=input$dates[1]  & claiminfo5[,"LOSSDATE"] <=input$dates[2] & claiminfo5[,"LINEOFBUSINESS"] %in% 			c(input$checkbox))
+            		claiminfo4
+            	}
+    	})
+    	
+    	output$table <- renderDataTable({
+        	claiminfo<-datasetInput()
+        	claiminfo$TOTALINCURRED<-paste("$",format(claiminfo$TOTALINCURRED, big.mark=","),sep="")
+        	names(claiminfo)[c(1,3,4,5,6:9)] <- c("Claim Number","Line of Business","Loss Date","Total Incurred", "Limit"			, "Retention", "Institution Code", "Incident or Claim")
+        	claiminfo
+    	})
    
-    output$plot1 <- renderPlot({
-        claiminfo4 <- datasetInput()
-        counts <- table(as.numeric(format(claiminfo4[,"LOSSDATE"], "%Y")))
-        barplot(counts, main="Claims by Year", 
+    	output$plot1 <- renderPlot({
+        	claiminfo4 <- datasetInput()
+        	counts <- table(as.numeric(format(claiminfo4[,"LOSSDATE"], "%Y")))
+        	barplot(counts, main="Claims by Year", 
                 xlab="Loss Year")
-    })
+    	})
 
-    output$plot2 <- renderPlot({
-        claiminfo4 <- datasetInput()
-        losses<-aggregate(claiminfo4[,"TOTALINCURRED"], by=list(Category=as.numeric(format(claiminfo4[,"LOSSDATE"], "%Y"))), FUN=sum)
-        barplot(height=losses$x, main="Total Incurred by Year", 
+    	output$plot2 <- renderPlot({
+        	claiminfo4 <- datasetInput()
+        	losses<-aggregate(claiminfo4[,"TOTALINCURRED"], by=list(Category=as.numeric(format(claiminfo4[,"LOSSDATE"], 			"%Y"))), FUN=sum)
+        	barplot(height=losses$x, main="Total Incurred by Year", 
                 xlab="Loss Year")
-    })
+	})
     
-    output$downloadData <- downloadHandler(
-        filename = function() {
-            paste('data_', Sys.Date(), '.csv', sep='')
-        },
-        content = function(file) {
-            write.csv(datasetInput(), file)
-        }
-    )    
+    	output$downloadData <- downloadHandler(
+        	filename = function() {
+        		paste('data_', Sys.Date(), '.csv', sep='')
+        	},
+        	content = function(file) {
+            		write.csv(datasetInput(), file)
+        	}
+    	)    
 }
 
 shinyApp(ui = ui, server = server)
