@@ -8,6 +8,8 @@ claiminfo2$RETENTION<-paste("$",format(claiminfo2$RETENTION, big.mark=","),sep="
 claiminfo2$LOBNEW <- claiminfo2[,"LINEOFBUSINESS"]
 claiminfo2$LOBNEW <- ifelse(claiminfo2$LINEOFBUSINESS %in% c("DAL","DBC","DGL","SAF","SAL","SBC","SBO","SCF","SGF","SGL","SOF"),
                             "Public Schools",ifelse(claiminfo2$LINEOFBUSINESS %in% c("CGX","GLF","GLU","GLX"),"GLX/U",paste(claiminfo2$LINEOFBUSINESS)))
+claiminfo2$INSTCODENEW <- claiminfo2[,"INSTCODE"]
+claiminfo2$INSTCODENEW <- ifelse(claiminfo2$INSTCODE %in% c("PS","SD"),"PS/SD",ifelse(claiminfo2$INSTCODE %in% c("U4","R4"),"U4/R4",ifelse(claiminfo2$INSTCODE %in% c("U2","R2"),"U2/R2",paste(claiminfo2$INSTCODE))))
 
 
 ui<-fluidPage(
@@ -23,8 +25,10 @@ ui<-fluidPage(
             
             hr(),
             
-            checkboxGroupInput("checkbox", label = "Line of Business", 
-                               c("ELL"="ELL","CGL" = "CGL","GLX/U"="GLX/U","BLX"="BLX","EBL"="EBL","LPL"="LPL","Public Schools"="Public Schools"),selected = c("ELL","CGL","GLX/U","BLX","EBL","LPL","Public Schools"),inline = TRUE),
+            checkboxGroupInput("checkboxLOB", label = "Line of Business", 
+                               c("ELL"="ELL","CGL" = "CGL","GLX/U"="GLX/U","BLX"="BLX","EBL"="EBL","LPL"="LPL","Public Schools"="Public Schools"),selected = c.Date("ELL","CGL","GLX/U","BLX","EBL","LPL","Public Schools"),inline = TRUE),
+            checkboxGroupInput("checkboxIC", label = "Institution Code", 
+                               c("IN"="IN","O" = "O","PS/SD"="PS/SD","U4/R4"="U4/R4","U2/R2"="U2/R2"),selected = c("IN","O","PS/SD","U4/R4","U2/R2"),inline = TRUE),
             downloadButton('downloadData', 'Download')
         ),
         mainPanel(
@@ -38,7 +42,8 @@ ui<-fluidPage(
 server<-function(input,output){
     datasetInput <- reactive({
         words2 <- unlist(str_split(input$words1,","))
-        lob <- unlist(str_split(input$checkbox,","))
+        lob <- unlist(str_split(input$checkboxLOB,","))
+        inst_code <- unlist(str_split(input$checkboxIC,","))
         
         for (i in 1:length(words2)) {
             trimwords <- str_trim(words2[i])
@@ -46,19 +51,19 @@ server<-function(input,output){
         }
         if(length(words2) == 0)
         {claiminfo2
-            claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666)]
-            claiminfo4 <- subset(claiminfo3,claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2]& claiminfo3[,"LOBNEW"] %in% c(input$checkbox))
+            claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,667)]
+            claiminfo4 <- subset(claiminfo3,claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2]& claiminfo3[,"LOBNEW"] %in% c(input$checkboxLOB)& claiminfo3[,"INSTCODENEW"] %in% c(input$checkboxIC))
             claiminfo4}
         else if (length(words2)==1)
         { claiminfo2$xxtotal <- rowsum(claiminfo2[, c(words2)],claiminfo2$Category)
-        claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,length(claiminfo2))]
-        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(input$checkbox))
+        claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,667,length(claiminfo2))]
+        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(input$checkboxLOB)& claiminfo3[,"INSTCODENEW"] %in% c(input$checkboxIC))
         
         claiminfo4}
         else
         {claiminfo2$xxtotal <-rowSums(claiminfo2[,c(words2)])
-        claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,length(claiminfo2))]
-        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(input$checkbox))
+        claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,667,length(claiminfo2))]
+        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(input$checkbox) & claiminfo3[,"INSTCODENEW"] %in% c(input$checkboxIC))
         claiminfo4}
     })
     
