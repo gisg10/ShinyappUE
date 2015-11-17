@@ -17,7 +17,7 @@ ui<-fluidPage(
                    label = "Enter search terms, separated by commas",choices = colnames(claiminfo2[,2:length(claiminfo2)]), 
                    multiple = TRUE
     ),
-
+    
     radioButtons("logic", label = h3("Word Logic"),
                  choices = list("Or" = 1, "And" = 2), 
                  selected = 1),
@@ -29,7 +29,7 @@ ui<-fluidPage(
             hr(),
             
             checkboxGroupInput("checkboxLOB", label = "Line of Business", 
-                               c("ELL"="ELL","CGL" = "CGL","GLX/U"="GLX/U","BLX"="BLX","EBL"="EBL","LPL"="LPL","Public Schools"="Public Schools"),selected = c.Date("ELL","CGL","GLX/U","BLX","EBL","LPL","Public Schools"),inline = TRUE),
+                               c("ELL"="ELL","CGL" = "CGL","GLX/U"="GLX/U","BLX"="BLX","EBL"="EBL","LPL"="LPL","Public Schools"="Public Schools"),selected = c("ELL","CGL","GLX/U","BLX","EBL","LPL","Public Schools"),inline = TRUE),
             checkboxGroupInput("checkboxICode", label = "Institution Code", 
                                c("IN"="IN","O" = "O","PS/SD"="PS/SD","U4/R4"="U4/R4","U2/R2"="U2/R2"),selected = c("IN","O","PS/SD","U4/R4","U2/R2"),inline = TRUE),
             checkboxGroupInput("checkboxInc_Claim", label = "Claim/Incident", 
@@ -39,6 +39,7 @@ ui<-fluidPage(
         mainPanel(
             tabsetPanel(type = "tabs", 
                         tabPanel("List of Claims", dataTableOutput(outputId = "table")), 
+                        tabPanel("Summary",textOutput(outputId = "total1"),textOutput(outputId = "total2"),tableOutput(outputId = "table1")),
                         tabPanel("Plot", plotOutput("plot1"),plotOutput("plot2"))
             )
         )
@@ -84,20 +85,65 @@ server<-function(input,output){
         {claiminfo3 <- claiminfo2[,c("Category","ISN","LINEOFBUSINESS","LOSSDATE","TOTALINCURRED","LIMIT","RETENTION","INSTCODE","INCIDENTORCLAIM","LOBNEW","INSTCODENEW")]
         claiminfo6 <- claiminfo2[,c(words2)]
         claiminfo6[(claiminfo6>1)] <-1
-        claiminfo3$xxtotal <-rowSums(claiminfo2[,c(words2)])
-        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] ==length(words2) & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(lob) & claiminfo3[,"INSTCODENEW"] %in% c(inst_code)& claiminfo3[,"INCIDENTORCLAIM"] %in% c(inc_claim))
+        claiminfo5<-cbind(claiminfo3,claiminfo6)
+        claiminfo5$xxtotal <-rowSums(claiminfo5[,c(words2)])
+        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(lob)& claiminfo3[,"INSTCODENEW"] %in% c(inst_code)& claiminfo3[,"INCIDENTORCLAIM"] %in% c(inc_claim))
         claiminfo4}
         
         
         
-       
-})
+        
+    })
     
     output$table <- renderDataTable({
         claiminfo<-datasetInput()
         claiminfo$TOTALINCURRED<-paste("$",format(claiminfo$TOTALINCURRED, big.mark=","),sep="")
         names(claiminfo)[c(1,3,4,5,6:9)] <- c("Claim Number","Line of Business","Loss Date","Total Incurred", "Limit", "Retention", "Institution Code", "Incident or Claim")
         claiminfo
+    })
+
+    output$total1 <- renderText({
+        claiminfo4 <- datasetInput()
+        words2 <- unlist(str_split(input$words1,","))
+        total.number <- dim(claiminfo4)
+        paste("Total Number of Claims:",formatC(as.numeric(total.number[[1]]),format = "f",digits = 0,big.mark = ","))
+    })
+    
+    output$total2 <- renderText({
+        claiminfo4 <- datasetInput()
+        totalloss <- sum(claiminfo4[,"TOTALINCURRED"])
+        paste("Total Incurred Loss:", paste0("$", formatC(as.numeric(totalloss), format="f", digits=2, big.mark=",")))
+    })
+    
+    output$table1 <- renderTable({
+        claiminfo4 <- datasetInput()
+        claiminfoELL <- subset(claiminfo4,claiminfo4[,"LOBNEW"]=="ELL")
+        f1 <- dim(claiminfoELL)[[1]]
+        s1 <- paste0("$", formatC(as.numeric(sum(claiminfoELL[,"TOTALINCURRED"])), format="f", digits=2, big.mark=","))
+        claiminfoCGL <- subset(claiminfo4,claiminfo4[,"LOBNEW"]=="CGL")
+        f2 <- dim(claiminfoCGL)[[1]]
+        s2 <- paste0("$", formatC(as.numeric(sum(claiminfoCGL[,"TOTALINCURRED"])), format="f", digits=2, big.mark=","))
+        claiminfoGLXU <- subset(claiminfo4,claiminfo4[,"LOBNEW"]=="GLX/U")
+        f3 <- dim(claiminfoGLXU)[[1]]
+        s3 <- paste0("$", formatC(as.numeric(sum(claiminfoGLXU[,"TOTALINCURRED"])), format="f", digits=2, big.mark=","))
+        claiminfoBLX <- subset(claiminfo4,claiminfo4[,"LOBNEW"]=="BLX")
+        f4 <- dim(claiminfoBLX)[[1]]
+        s4 <- paste0("$", formatC(as.numeric(sum(claiminfoBLX[,"TOTALINCURRED"])), format="f", digits=2, big.mark=","))
+        claiminfoEBL <- subset(claiminfo4,claiminfo4[,"LOBNEW"]=="EBL")
+        f5 <- dim(claiminfoEBL)[[1]]
+        s5 <- paste0("$", formatC(as.numeric(sum(claiminfoEBL[,"TOTALINCURRED"])), format="f", digits=2, big.mark=","))
+        claiminfoLPL <- subset(claiminfo4,claiminfo4[,"LOBNEW"]=="LPL")
+        f6 <- dim(claiminfoLPL)[[1]]
+        s6 <- paste0("$", formatC(as.numeric(sum(claiminfoLPL[,"TOTALINCURRED"])), format="f", digits=2, big.mark=","))
+        claiminfoPublic <- subset(claiminfo4,claiminfo4[,"LOBNEW"]=="Public Schools")
+        f7 <- dim(claiminfoPublic)[[1]]
+        s7 <- paste0("$", formatC(as.numeric(sum(claiminfoPublic[,"TOTALINCURRED"])), format="f", digits=2, big.mark=","))
+        first.row <- c(f1,f2,f3,f4,f5,f6,f7)
+        second.row <- c(s1,s2,s3,s4,s5,s6,s7)
+        display.table <- rbind(first.row,second.row)
+        row.names(display.table) <- c("Number of Claims","Total Incurred")
+        colnames(display.table) <- c("ELL","CGL","GLX/U","BLX","EBL","LPL","Public Schools")
+        display.table
     })
     
     output$plot1 <- renderPlot({
@@ -122,6 +168,6 @@ server<-function(input,output){
             write.csv(datasetInput(), file)
         }
     )    
-    }
+}
 
 shinyApp(ui = ui, server = server) 
