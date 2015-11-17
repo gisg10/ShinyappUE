@@ -1,5 +1,7 @@
 library(stringr)
 library(shiny)
+library(ggplot2)
+library(scales)
 
 claiminfo2 <-read.csv("X:/Actuarial/Claims_Project/Claims_DTM_PDOX.csv")
 claiminfo2$LOSSDATE<-as.Date(claiminfo2[,"LOSSDATE"],"%m/%d/%y")
@@ -102,16 +104,14 @@ server<-function(input,output){
     
     output$plot1 <- renderPlot({
         claiminfo4 <- datasetInput()
-        counts <- table(as.numeric(format(claiminfo4[,"LOSSDATE"], "%Y")))
-        barplot(counts, main="Claims by Year", 
-                xlab="Loss Year")
+        counts<-aggregate(claiminfo4[,"Category"], by=list(Category=as.numeric(format(claiminfo4[,"LOSSDATE"], "%Y"))), FUN=length)
+        ggplot(counts, aes(x=Category, y=x)) + geom_area(fill="blue",alpha=.4) +geom_point(color="blue",size=3) + geom_line(color="blue",size=1)+labs(title ="Claims by Year", x ="Loss Year" , y ="Total Claims")+scale_y_continuous(limits = c(0, NA),labels=comma)
     })
     
     output$plot2 <- renderPlot({
         claiminfo4 <- datasetInput()
         losses<-aggregate(claiminfo4[,"TOTALINCURRED"], by=list(Category=as.numeric(format(claiminfo4[,"LOSSDATE"], "%Y"))), FUN=sum)
-        barplot(height=losses$x, main="Total Incurred by Year", 
-                xlab="Loss Year")
+        ggplot(losses, aes(x=Category, y=x)) + geom_area(fill="blue",alpha=.4) +geom_point(color="blue",size=3) + geom_line(color="blue",size=1)+labs(title ="Incurred by Year", x ="Loss Year" , y ="Total Incurred")+scale_y_continuous(limits = c(0, NA),labels=dollar)
     })
     
     output$downloadData <- downloadHandler(
