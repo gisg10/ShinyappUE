@@ -1,3 +1,16 @@
+library(stringr)
+library(shiny)
+
+claiminfo2 <-read.csv("X:/Claims_Project/Claims_DTM_PDOX.csv")
+claiminfo2$LOSSDATE<-as.Date(claiminfo2[,"LOSSDATE"],"%m/%d/%y")
+claiminfo2$LIMIT<-paste("$",format(claiminfo2$LIMIT, big.mark=","),sep="")
+claiminfo2$RETENTION<-paste("$",format(claiminfo2$RETENTION, big.mark=","),sep="")
+claiminfo2$LOBNEW <- claiminfo2[,"LINEOFBUSINESS"]
+claiminfo2$LOBNEW <- ifelse(claiminfo2$LINEOFBUSINESS %in% c("DAL","DBC","DGL","SAF","SAL","SBC","SBO","SCF","SGF","SGL","SOF"),
+                            "Public Schools",ifelse(claiminfo2$LINEOFBUSINESS %in% c("CGX","GLF","GLU","GLX"),"GLX/U",paste(claiminfo2$LINEOFBUSINESS)))
+claiminfo2$INSTCODENEW <- claiminfo2[,"INSTCODE"]
+claiminfo2$INSTCODENEW <- ifelse(claiminfo2$INSTCODE %in% c("PS","SD"),"PS/SD",ifelse(claiminfo2$INSTCODE %in% c("U4","R4"),"U4/R4",ifelse(claiminfo2$INSTCODE %in% c("U2","R2"),"U2/R2",paste(claiminfo2$INSTCODE))))
+
 ui<-fluidPage(
     
     selectizeInput(inputId = "words1",
