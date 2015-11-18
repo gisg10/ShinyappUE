@@ -142,7 +142,7 @@ server<-function(input,output){
         
         display.table
         
-    }, rownames = c("Number of Claims","Total Incurred"),options = list(searching = FALSE,
+    }, rownames = c("Number of Claims","Total Incurred"),options = list(searching = FALSE, paging = FALSE,
                                                                         columnDefs = list(list(className = 'dt-center',targets = 1:8))))
     
     output$plot1 <- renderPlot({
