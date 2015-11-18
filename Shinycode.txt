@@ -1,6 +1,8 @@
 library(stringr)
 library(shiny)
 library(DT)
+library(ggplot2)
+library(scales)
 
 claiminfo2 <-read.csv("X:/Claims_Project/Claims_DTM_PDOX.csv")
 claiminfo2$LOSSDATE<-as.Date(claiminfo2[,"LOSSDATE"],"%m/%d/%y")
@@ -90,15 +92,12 @@ server<-function(input,output){
         claiminfo4 }
         
         else
-        {claiminfo3 <- claiminfo2[,c("Category","ISN","LINEOFBUSINESS","LOSSDATE","TOTALINCURRED","LIMIT","RETENTION","INSTCODE","INCIDENTORCLAIM","LOBNEW","INSTCODENEW")]
+        {claiminfo3 <- claiminfo2[,c("Category","ISN","LINEOFBUSINESS","LOSSDATE","TOTALINCURRED","LIMIT","RETENTION","INSTCODE","INCIDENTORCLAIM","LOBNEW","INSTCODENEW","LossYN")]
         claiminfo6 <- claiminfo2[,c(words2)]
         claiminfo6[(claiminfo6>1)] <-1
-        claiminfo5<-cbind(claiminfo3,claiminfo6)
-        claiminfo5$xxtotal <-rowSums(claiminfo5[,c(words2)])
-        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] >0 & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(lob)& claiminfo3[,"INSTCODENEW"] %in% c(inst_code)& claiminfo3[,"INCIDENTORCLAIM"] %in% c(inc_claim)& claiminfo3[,"LossYN"] %in% c(lossyn))
-        claiminfo4 }
-        
-        
+        claiminfo3$xxtotal <-rowSums(claiminfo2[,c(words2)])
+        claiminfo4 <- subset(claiminfo3,claiminfo3[,"xxtotal"] ==length(words2) & claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2] & claiminfo3[,"LOBNEW"] %in% c(lob) & claiminfo3[,"INSTCODENEW"] %in% c(inst_code)& claiminfo3[,"INCIDENTORCLAIM"] %in% c(inc_claim)& claiminfo3[,"LossYN"] %in% c(lossyn))
+        claiminfo4}
         
         
     })
