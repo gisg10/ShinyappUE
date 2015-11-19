@@ -125,7 +125,7 @@ server<-function(input,output){
         claiminfo4 }
         
         else
-        {claiminfo3 <- claiminfo2[,c("Category","ISN","LINEOFBUSINESS","LOSSDATE","TOTALINCURRED","LIMIT","RETENTION","INSTCODE","INCIDENTORCLAIM","LOBNEW","INSTCODENEW","LossYN","xxtotal")]
+        {claiminfo3 <- claiminfo2[,c("Category","ISN","LINEOFBUSINESS","LOSSDATE","TOTALINCURRED","LIMIT","RETENTION","INSTCODE","INCIDENTORCLAIM","LOBNEW","INSTCODENEW","LossYN")]
         claiminfo6 <- claiminfo2[,c(words2)]
         claiminfo6[(claiminfo6>1)] <-1
         claiminfo3$xxtotal <-rowSums(claiminfo6[,c(words2)])
