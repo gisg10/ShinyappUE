@@ -21,8 +21,9 @@ ui<-fluidPage(
         
         tags$style(HTML("
                         .shiny-output-error-ERRORmessage {
-                        
+                        font-size: 20px;
                         color: blue;
+                        
                         }
                         "))),
     
@@ -36,11 +37,11 @@ ui<-fluidPage(
                            multiple = TRUE
             ),
             
-            radioButtons("logic", label = h4("Word Logic"),
+            radioButtons("logic", label = "Word Logic",
                          choices = list("Or" = 1, "And" = 2), 
                          selected = 1),
             
-            dateRangeInput("dates", label = h4("Date range"), start = "01-01-2010", end = "12-31-2014", format = "mm/dd/yy"),
+            dateRangeInput("dates", label = "Date range", start = "01-01-2010", end = "12-31-2014", format = "mm/dd/yy"),
             
         
             checkboxGroupInput("checkboxLOB", label = "Line of Business", 
@@ -77,7 +78,7 @@ server<-function(input,output){
         }
         
         validate(
-            need(lob != "", "Please select at least one Line of Business"),
+            need(lob != "","Please select at least one Line of Business"),
             errorClass = "ERRORmessage"
         )
         
