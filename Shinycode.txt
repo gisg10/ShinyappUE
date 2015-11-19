@@ -4,7 +4,7 @@ library(DT)
 library(ggplot2)
 library(scales)
 
-claiminfo2 <-read.csv("X:/Claims_Project/Claims_DTM_PDOX.csv")
+claiminfo2 <-read.csv("X:/Actuarial/Claims_Project/Claims_DTM_PDOX.csv")
 claiminfo2$LOSSDATE<-as.Date(claiminfo2[,"LOSSDATE"],"%m/%d/%y")
 claiminfo2$LIMIT<-paste("$",format(claiminfo2$LIMIT, big.mark=","),sep="")
 claiminfo2$RETENTION<-paste("$",format(claiminfo2$RETENTION, big.mark=","),sep="")
@@ -19,10 +19,10 @@ ui<-fluidPage(
     
     tags$head(
         
-                 tags$style(HTML("
+        tags$style(HTML("
                         .shiny-output-error-ERRORmessage {
-                            
-                                 color: #48ca3b;
+                        
+                        color: blue;
                         }
                         "))),
     
@@ -42,8 +42,7 @@ ui<-fluidPage(
             
             dateRangeInput("dates", label = h4("Date range"), start = "01-01-2010", end = "12-31-2014", format = "mm/dd/yy"),
             
-            hr(),
-            
+        
             checkboxGroupInput("checkboxLOB", label = "Line of Business", 
                                c("ELL"="ELL","CGL" = "CGL","GLX/U"="GLX/U","BLX"="BLX","EBL"="EBL","LPL"="LPL","Public Schools"="Public Schools"),selected = c("ELL","CGL","GLX/U","BLX","EBL","LPL","Public Schools"),inline = TRUE),
             checkboxGroupInput("checkboxICode", label = "Institution Code", 
@@ -102,7 +101,7 @@ server<-function(input,output){
             claiminfo2$xxtotal <- 1
             claiminfo3 <- claiminfo2[,c(1,652,654,656,659,662:665,666,667,668,length(claiminfo2))]
             claiminfo4 <- subset(claiminfo3,claiminfo3[,"LOSSDATE"]>=input$dates[1] & claiminfo3[,"LOSSDATE"]<=input$dates[2]& claiminfo3[,"LOBNEW"] %in% c(lob)& claiminfo3[,"INSTCODENEW"] %in% c(inst_code)& claiminfo3[,"INCIDENTORCLAIM"] %in% c(inc_claim)& claiminfo3[,"LossYN"] %in% c(lossyn))
-        
+            
             claiminfo4
         }
         
@@ -135,7 +134,7 @@ server<-function(input,output){
         
         
     })
-
+    
     
     output$table <- renderDataTable({
         claiminfo<-datasetInput()
@@ -188,16 +187,14 @@ server<-function(input,output){
     
     output$plot1 <- renderPlot({
         claiminfo4 <- datasetInput()
-        counts <- table(as.numeric(format(claiminfo4[,"LOSSDATE"], "%Y")))
-        barplot(counts, main="Claims by Year", 
-                xlab="Loss Year")
+        counts<-aggregate(claiminfo4[,"Category"], by=list(Category=as.numeric(format(claiminfo4[,"LOSSDATE"], "%Y"))), FUN=length)
+        ggplot(counts, aes(x=Category, y=x)) + geom_area(fill="blue",alpha=.4) +geom_point(color="blue",size=3) + geom_line(color="blue",size=1)+labs(title ="Claims by Year", x ="Loss Year" , y ="Total Claims")+scale_y_continuous(limits = c(0, NA),labels=comma)
     })
     
     output$plot2 <- renderPlot({
         claiminfo4 <- datasetInput()
         losses<-aggregate(claiminfo4[,"TOTALINCURRED"], by=list(Category=as.numeric(format(claiminfo4[,"LOSSDATE"], "%Y"))), FUN=sum)
-        barplot(height=losses$x, main="Total Incurred by Year", 
-                xlab="Loss Year")
+        ggplot(losses, aes(x=Category, y=x)) + geom_area(fill="blue",alpha=.4) +geom_point(color="blue",size=3) + geom_line(color="blue",size=1)+labs(title ="Incurred by Year", x ="Loss Year" , y ="Total Incurred")+scale_y_continuous(limits = c(0, NA),labels=dollar)
     })
     
     output$downloadData <- downloadHandler(
